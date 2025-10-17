@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { useLinks } from '../hooks/useLinks';
-import type { Link, NotificationType } from '../types';
+import { useLinks } from '../hooks/useLinks.ts';
+import type { Link, NotificationType } from '../types/index.ts';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Spinner from './ui/Spinner';
