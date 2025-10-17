@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 // FIX: The 'qrcode.react' library exports QRCodeCanvas and QRCodeSVG, not QRCode. Using QRCodeCanvas as QRCode because the download functionality expects a canvas element.
 import { QRCodeCanvas as QRCode } from 'qrcode.react';
@@ -40,7 +41,7 @@ export default function LinkCard({ link, onUpdate, onDelete, setNotification }: 
     }
 
     setIsUpdating(true);
-    const updated = await updateLink(link.id, newDestinationUrl);
+    const updated = await updateLink({ id: link.id, destinationUrl: newDestinationUrl });
     setIsUpdating(false);
 
     if (updated) {
