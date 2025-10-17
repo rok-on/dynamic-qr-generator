@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Link, NotificationType } from '../types/index.ts';
+import type { Link, NotificationType } from '../types';
 
 type SetNotification = (notification: { message: string; type: NotificationType } | null) => void;
 
