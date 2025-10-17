@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLinks } from '../hooks/useLinks';
 import type { Link, NotificationType } from '../types';
@@ -17,29 +18,20 @@ export default function CreateLinkForm({ onCreate, setNotification }: CreateLink
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const trimmedUrl = destinationUrl.trim();
-    if (!trimmedUrl) {
+    if (!destinationUrl.trim()) {
       setNotification({ message: 'Please enter a destination URL.', type: 'error' });
       return;
     }
     
-    let fullUrl = trimmedUrl;
-    // Handle protocol-relative URLs and URLs without a scheme.
-    if (fullUrl.startsWith('//')) {
-        fullUrl = `https:${fullUrl}`;
-    } else if (!/^[a-z][a-z0-9+.-]*:/.test(fullUrl)) {
-        fullUrl = `https://${fullUrl}`;
-    }
-
     try {
-        new URL(fullUrl);
+        new URL(destinationUrl);
     } catch (_) {
         setNotification({ message: 'Please enter a valid URL (e.g., https://example.com)', type: 'error' });
         return;
     }
 
     setIsLoading(true);
-    const newLink = await createLink(fullUrl);
+    const newLink = await createLink(destinationUrl);
     setIsLoading(false);
 
     if (newLink) {
