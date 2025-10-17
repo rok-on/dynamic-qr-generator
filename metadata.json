@@ -1,0 +1,5 @@
+{
+  "name": "Dynamic QR Code Generator",
+  "description": "Create dynamic QR codes that you can print once and update the destination URL anytime. This application allows you to manage short links that redirect to any web page, and generate QR codes for them. (Ustvarite dinamične QR kode, ki jih natisnete enkrat, ciljno povezavo pa lahko posodobite kadarkoli.)",
+  "requestFramePermissions": []
+}
