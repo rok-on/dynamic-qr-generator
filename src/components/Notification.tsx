@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import type { NotificationType } from '../types';
+import type { NotificationType } from '../types/index.ts';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
 interface NotificationProps {
