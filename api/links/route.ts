@@ -1,9 +1,8 @@
-
 // NOTE: To generate a short ID, this file requires the 'nanoid' package.
 // You must have a Vercel KV store linked to your project for this to work.
 import { kv } from '@vercel/kv';
 import { nanoid } from 'nanoid';
-import type { Link } from '../../src/types';
+import type { Link } from '@/types';
 
 export const runtime = 'edge';
 
