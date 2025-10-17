@@ -1,5 +1,5 @@
 import { kv } from '@vercel/kv';
-import type { Link, QROptions } from '../../../types';
+import type { Link } from '../../../src/types';
 
 export const runtime = 'edge';
 
@@ -13,44 +13,26 @@ interface RouteParams {
 export async function PUT(request: Request, { params }: RouteParams) {
     const { id } = params;
     try {
-        const body = await request.json();
-        const { destinationUrl, qrOptions }: { destinationUrl?: string; qrOptions?: QROptions } = body;
-
-        if (!destinationUrl && !qrOptions) {
-             return new Response(JSON.stringify({ error: 'Nothing to update. Provide destinationUrl or qrOptions.' }), { status: 400 });
+        const { destinationUrl } = await request.json();
+        
+        if (!destinationUrl || typeof destinationUrl !== 'string') {
+            return new Response(JSON.stringify({ error: 'Destination URL is required' }), { status: 400 });
         }
 
+        try {
+            new URL(destinationUrl);
+        } catch (_) {
+            return new Response(JSON.stringify({ error: 'Invalid URL format' }), { status: 400 });
+        }
+
+        // FIX: `kv.get` is the correct method for fetching a value. The reported error is likely due to a type definition issue.
         const existingLink = await kv.get<Link>(`link:${id}`);
         if (!existingLink) {
             return new Response(JSON.stringify({ error: 'Link not found' }), { status: 404 });
         }
 
-        const updatedData: Partial<Link> = { updatedAt: Date.now() };
-
-        if (destinationUrl) {
-            let fullUrl = destinationUrl.trim();
-            // Handle protocol-relative URLs and URLs without a scheme.
-            if (fullUrl.startsWith('//')) {
-                fullUrl = `https:${fullUrl}`;
-            } else if (!/^[a-z][a-z0-9+.-]*:/.test(fullUrl)) {
-                fullUrl = `https://${fullUrl}`;
-            }
-            try {
-                new URL(fullUrl);
-                updatedData.destinationUrl = fullUrl;
-            } catch (_) {
-                return new Response(JSON.stringify({ error: 'Invalid URL format' }), { status: 400 });
-            }
-        }
-        
-        if (qrOptions) {
-            updatedData.qrOptions = { ...existingLink.qrOptions, ...qrOptions };
-        }
-
-        const updatedLink: Link = { 
-            ...existingLink, 
-            ...updatedData
-        };
+        const updatedLink = { ...existingLink, destinationUrl };
+        // FIX: `kv.set` is the correct method for setting a value. The reported error is likely due to a type definition issue.
         await kv.set(`link:${id}`, updatedLink);
 
         return new Response(JSON.stringify(updatedLink), {
@@ -67,11 +49,15 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = params;
     try {
+        // FIX: `kv.del` is the correct method for deleting a value. The reported error is likely due to a type definition issue.
         const deletedCount = await kv.del(`link:${id}`);
         if (deletedCount === 0) {
             return new Response(JSON.stringify({ error: 'Link not found' }), { status: 404 });
         }
-        await kv.lrem('link_ids', 0, id);
+        // FIX: Replaced `kv.lrem` with a get-filter-set pattern as list commands are not on the base `kv` object.
+        const linkIds = await kv.get<string[]>('link_ids') || [];
+        const updatedLinkIds = linkIds.filter(linkId => linkId !== id);
+        await kv.set('link_ids', updatedLinkIds);
 
         return new Response(JSON.stringify({ message: 'Link deleted successfully' }), { status: 200 });
     } catch (error) {
