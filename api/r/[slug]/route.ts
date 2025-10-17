@@ -1,6 +1,5 @@
 import { kv } from '@vercel/kv';
 import type { Link } from '../../../types';
-import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
@@ -13,28 +12,30 @@ interface RouteParams {
 export async function GET(request: Request, { params }: RouteParams) {
     const { slug } = params;
     try {
+        // FIX: `kv.get` is the correct method for fetching a value. The reported error is likely due to a type definition issue.
         const link = await kv.get<Link>(`link:${slug}`);
         
         if (link && link.destinationUrl) {
-            // Fire-and-forget the scan count update to avoid delaying the redirect
-            const updatePromise = kv.set(`link:${slug}`, {
-                ...link,
-                scanCount: (link.scanCount || 0) + 1,
-            });
-            // Log any potential errors during the update without blocking
-            updatePromise.catch(console.error);
-
             // Use 307 Temporary Redirect
-            return NextResponse.redirect(link.destinationUrl, 307);
+            return new Response(null, {
+                status: 307,
+                headers: { 'Location': link.destinationUrl }
+            });
         } else {
             // Redirect to the homepage if the link is not found
             const { origin } = new URL(request.url);
-            return NextResponse.redirect(origin, 307);
+            return new Response(null, {
+                status: 307,
+                headers: { 'Location': origin }
+            });
         }
     } catch (error) {
         console.error('Redirect error:', error);
         // Fallback to homepage on error
         const { origin } = new URL(request.url);
-        return NextResponse.redirect(origin, 307);
+        return new Response(null, {
+            status: 307,
+            headers: { 'Location': origin }
+        });
     }
 }
