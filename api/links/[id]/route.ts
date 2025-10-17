@@ -1,6 +1,6 @@
 
 import { kv } from '@vercel/kv';
-import type { Link } from '../../../src/types';
+import type { Link } from '@/types';
 
 export const runtime = 'edge';
 
