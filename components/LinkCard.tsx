@@ -1,14 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react';
-import type { Link, NotificationType, QROptions } from '../types';
+// FIX: The 'qrcode.react' library exports QRCodeCanvas and QRCodeSVG, not QRCode. Using QRCodeCanvas as QRCode because the download functionality expects a canvas element.
+import { QRCodeCanvas as QRCode } from 'qrcode.react';
+import type { Link, NotificationType } from '../types';
 import { useLinks } from '../hooks/useLinks';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Card from './ui/Card';
 import Spinner from './ui/Spinner';
-import { Check, Clipboard, Download, Edit, Trash2, X, ExternalLink, BarChart2, Settings, FileImage, Type as TypeIcon } from 'lucide-react';
-import CustomizeQrModal from './CustomizeQrModal';
-import Dropdown from './ui/Dropdown';
+import { Check, Clipboard, Download, Edit, Trash2, X, ExternalLink } from 'lucide-react';
 
 interface LinkCardProps {
   link: Link;
@@ -17,69 +16,36 @@ interface LinkCardProps {
   setNotification: (notification: { message: string; type: NotificationType } | null) => void;
 }
 
-const defaultQrOptions: QROptions = {
-    fgColor: '#000000',
-    bgColor: '#ffffff',
-    level: 'H',
-    imageSettings: null,
-};
-
 export default function LinkCard({ link, onUpdate, onDelete, setNotification }: LinkCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isCustomizing, setIsCustomizing] = useState(false);
   const [newDestinationUrl, setNewDestinationUrl] = useState(link.destinationUrl);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
   
   const qrCodeRef = useRef<HTMLDivElement>(null);
-  const qrCodeSvgRef = useRef<HTMLDivElement>(null);
   const { updateLink, deleteLink } = useLinks(setNotification);
 
-  const handleUpdateUrl = async () => {
-    let fullUrl = newDestinationUrl.trim();
-    if (!fullUrl) {
-      setNotification({ message: 'Destination URL cannot be empty.', type: 'error' });
-      return;
-    }
-
-    // Handle protocol-relative URLs and URLs without a scheme.
-    if (fullUrl.startsWith('//')) {
-        fullUrl = `https:${fullUrl}`;
-    } else if (!/^[a-z][a-z0-9+.-]*:/.test(fullUrl)) {
-        fullUrl = `https://${fullUrl}`;
-    }
-
-    if (fullUrl === link.destinationUrl) {
+  const handleUpdate = async () => {
+    if (newDestinationUrl === link.destinationUrl) {
       setIsEditing(false);
       return;
     }
 
     try {
-      new URL(fullUrl);
+        new URL(newDestinationUrl);
     } catch (_) {
-      setNotification({ message: 'Please enter a valid URL.', type: 'error' });
-      return;
+        setNotification({ message: 'Please enter a valid URL.', type: 'error' });
+        return;
     }
 
     setIsUpdating(true);
-    const updated = await updateLink(link.id, { destinationUrl: fullUrl });
+    const updated = await updateLink(link.id, newDestinationUrl);
     setIsUpdating(false);
 
     if (updated) {
       onUpdate();
       setIsEditing(false);
-    }
-  };
-  
-  const handleSaveCustomization = async (newOptions: QROptions) => {
-    setIsUpdating(true);
-    const updated = await updateLink(link.id, { qrOptions: newOptions });
-    setIsUpdating(false);
-    if (updated) {
-        setNotification({ message: 'QR Code updated successfully!', type: 'success'});
-        onUpdate();
-        setIsCustomizing(false);
     }
   };
 
@@ -100,7 +66,7 @@ export default function LinkCard({ link, onUpdate, onDelete, setNotification }: 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadPng = () => {
+  const handleDownload = () => {
     const canvas = qrCodeRef.current?.querySelector('canvas');
     if (canvas) {
       const url = canvas.toDataURL('image/png');
@@ -113,51 +79,11 @@ export default function LinkCard({ link, onUpdate, onDelete, setNotification }: 
     }
   };
 
-  const handleDownloadSvg = () => {
-    const svgEl = qrCodeSvgRef.current?.querySelector('svg');
-    if (svgEl) {
-        if (!svgEl.getAttribute('xmlns')) {
-            svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        }
-        const svgString = new XMLSerializer().serializeToString(svgEl);
-        const blob = new Blob([svgString], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `qrcode-${link.id}.svg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-  };
-  
-  const currentQrOptions = { ...defaultQrOptions, ...link.qrOptions };
-  const qrProps = {
-    value: link.shortUrl,
-    size: 160,
-    level: currentQrOptions.level,
-    fgColor: currentQrOptions.fgColor,
-    bgColor: currentQrOptions.bgColor,
-    imageSettings: currentQrOptions.imageSettings || undefined,
-  };
-
-  const downloadOptions = [
-    { label: 'Download PNG', onClick: handleDownloadPng, icon: <FileImage className="w-4 h-4" /> },
-    { label: 'Download SVG', onClick: handleDownloadSvg, icon: <TypeIcon className="w-4 h-4" /> }
-  ];
-
   return (
-    <>
     <Card>
       <div className="p-6">
-        <div className="flex justify-center items-center p-4 rounded-lg mb-4" style={{ backgroundColor: currentQrOptions.bgColor }}>
-          <div ref={qrCodeRef}>
-             <QRCodeCanvas {...qrProps} />
-          </div>
-          <div ref={qrCodeSvgRef} style={{ display: 'none' }}>
-            <QRCodeSVG {...qrProps} />
-          </div>
+        <div className="flex justify-center items-center p-4 bg-white rounded-lg mb-4" ref={qrCodeRef}>
+          <QRCode value={link.shortUrl} size={160} level="H" />
         </div>
 
         <div className="space-y-4">
@@ -174,73 +100,52 @@ export default function LinkCard({ link, onUpdate, onDelete, setNotification }: 
             <div>
                 <label className="text-xs font-semibold text-gray-400">Destination URL</label>
                 {isEditing ? (
-                    <div className="flex flex-col gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1">
                         <Input
-                          value={newDestinationUrl}
-                          onChange={(e) => setNewDestinationUrl(e.target.value)}
-                          className="text-sm"
-                          disabled={isUpdating}
+                        value={newDestinationUrl}
+                        onChange={(e) => setNewDestinationUrl(e.target.value)}
+                        className="text-sm"
+                        disabled={isUpdating}
                         />
-                         <div className="flex gap-2">
-                             <Button variant="success" size="normal" onClick={handleUpdateUrl} disabled={isUpdating} className="w-full text-xs">
-                                {isUpdating ? <Spinner className="w-4 h-4 mr-2"/> : <Check className="w-4 h-4 mr-2"/>} Save
-                            </Button>
-                            <Button variant="secondary" size="normal" onClick={() => setIsEditing(false)} disabled={isUpdating} className="w-full text-xs">
-                                <X className="w-4 h-4 mr-2"/> Cancel
-                            </Button>
-                         </div>
                     </div>
                 ) : (
                     <div className="flex items-center justify-between mt-1 text-gray-300 bg-gray-800 px-3 py-2 rounded-md">
                         <p className="text-sm truncate">{link.destinationUrl}</p>
-                        <a href={link.destinationUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-cyan-400 hover:text-cyan-300 flex-shrink-0">
+                        <a href={link.destinationUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-cyan-400 hover:text-cyan-300">
                           <ExternalLink className="w-4 h-4" />
                         </a>
                     </div>
                 )}
             </div>
-            
-            <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t border-gray-700/50">
-                <p>Created: {new Date(link.createdAt).toLocaleString()}</p>
-                <div className="flex items-center gap-1.5 font-medium text-gray-400">
-                    <BarChart2 className="w-4 h-4 text-cyan-400" />
-                    <span>{link.scanCount ?? 0} scans</span>
-                </div>
-            </div>
+
+            <p className="text-xs text-gray-500">Created: {new Date(link.createdAt).toLocaleString()}</p>
         </div>
       </div>
       
       <div className="bg-gray-800/50 p-3 flex gap-2">
+        {isEditing ? (
             <>
-                <Button variant="secondary" onClick={() => setIsEditing(!isEditing)} className="flex-1" disabled={isEditing}>
+                <Button variant="success" onClick={handleUpdate} disabled={isUpdating} className="w-full">
+                    {isUpdating ? <Spinner className="w-4 h-4 mr-2"/> : <Check className="w-4 h-4 mr-2"/>} Save
+                </Button>
+                <Button variant="secondary" onClick={() => setIsEditing(false)} disabled={isUpdating} className="w-full">
+                    <X className="w-4 h-4 mr-2"/> Cancel
+                </Button>
+            </>
+        ) : (
+            <>
+                <Button variant="secondary" onClick={() => setIsEditing(true)} className="flex-1">
                     <Edit className="w-4 h-4 mr-2" /> Edit
                 </Button>
-                 <Button variant="secondary" onClick={() => setIsCustomizing(true)} className="flex-1">
-                    <Settings className="w-4 h-4 mr-2" /> Customize
+                <Button variant="ghost" onClick={handleDownload}>
+                    <Download className="w-4 h-4 mr-2" /> Download
                 </Button>
-                <Dropdown
-                    trigger={
-                        <Button variant="ghost" title="Download QR Code">
-                            <Download className="w-4 h-4" />
-                        </Button>
-                    }
-                    options={downloadOptions}
-                />
                  <Button variant="danger" size="icon" onClick={handleDelete} disabled={isDeleting} title="Delete Link">
                     {isDeleting ? <Spinner className="w-4 h-4"/> : <Trash2 className="w-4 h-4" />}
                 </Button>
             </>
+        )}
       </div>
     </Card>
-    {isCustomizing && (
-        <CustomizeQrModal
-            isOpen={isCustomizing}
-            onClose={() => setIsCustomizing(false)}
-            link={link}
-            onSave={handleSaveCustomization}
-            isSaving={isUpdating}
-        />
-    )}
-    </>
   );
 }
