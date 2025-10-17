@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Link, NotificationType, QROptions } from '../types';
+import type { Link, NotificationType } from '../types';
 
 type SetNotification = (notification: { message: string; type: NotificationType } | null) => void;
 
@@ -52,12 +52,12 @@ export function useLinks(setNotification: SetNotification) {
     }
   };
 
-  const updateLink = async (id: string, data: { destinationUrl?: string; qrOptions?: QROptions }): Promise<Link | null> => {
+  const updateLink = async ({ id, destinationUrl }: { id: string; destinationUrl: string }): Promise<Link | null> => {
     try {
       const response = await fetch(`/api/links/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ destinationUrl }),
       });
       if (!response.ok) {
         const errorData = await response.json();
