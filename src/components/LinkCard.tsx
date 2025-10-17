@@ -2,8 +2,8 @@
 import React, { useState, useRef } from 'react';
 // FIX: The 'qrcode.react' library exports QRCodeCanvas and QRCodeSVG, not QRCode. Using QRCodeCanvas as QRCode because the download functionality expects a canvas element.
 import { QRCodeCanvas as QRCode } from 'qrcode.react';
-import type { Link, NotificationType } from '../types/index.ts';
-import { useLinks } from '../hooks/useLinks.ts';
+import type { Link, NotificationType } from '@/types';
+import { useLinks } from '@/hooks/useLinks';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Card from './ui/Card';
