@@ -1,6 +1,6 @@
-
 import { kv } from '@vercel/kv';
-import type { Link } from '@/types';
+// FIX: Replaced alias path with relative path for serverless environment compatibility.
+import type { Link } from '../../../src/types';
 
 export const runtime = 'edge';
 
