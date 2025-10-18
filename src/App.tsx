@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { useLinks } from '@/hooks/useLinks';
-import type { Link, NotificationType } from '@/types';
-import CreateLinkForm from '@/components/CreateLinkForm';
-import LinkCard from '@/components/LinkCard';
-import Notification from '@/components/Notification';
+// FIX: Replaced path aliases with relative paths to fix module resolution errors.
+import { useLinks } from './hooks/useLinks';
+import type { Link, NotificationType } from './types';
+import CreateLinkForm from './components/CreateLinkForm';
+import LinkCard from './components/LinkCard';
+import Notification from './components/Notification';
 import { QrCode, Link as LinkIcon } from 'lucide-react';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from './components/ui/Spinner';
 
 export default function App() {
   const [notification, setNotification] = useState<{ message: string; type: NotificationType } | null>(null);
