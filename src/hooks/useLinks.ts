@@ -1,6 +1,6 @@
-
 import { useState, useEffect, useCallback } from 'react';
-import type { Link, NotificationType } from '@/types';
+// FIX: Replaced path alias with a relative path to fix module resolution errors.
+import type { Link, NotificationType } from '../types';
 
 type SetNotification = (notification: { message: string; type: NotificationType } | null) => void;
 
