@@ -17,8 +17,8 @@ export interface Link {
   destinationUrl: string;
   shortUrl: string;
   createdAt: number;
-  scanCount: number;
-  updatedAt: number;
+  scanCount?: number;
+  updatedAt?: number;
   qrOptions?: QROptions;
 }
 
