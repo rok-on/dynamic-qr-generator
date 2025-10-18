@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useLinks } from '@/hooks/useLinks';
-import type { Link, NotificationType } from '@/types';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Spinner from '@/components/ui/Spinner';
+// FIX: Replaced path aliases with relative paths to fix module resolution errors.
+import { useLinks } from '../hooks/useLinks';
+import type { Link, NotificationType } from '../types';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import Spinner from './ui/Spinner';
 
 interface CreateLinkFormProps {
   onCreate: (newLink: Link) => void;
