@@ -1,6 +1,6 @@
-
 import React, { useEffect } from 'react';
-import type { NotificationType } from '@/types';
+// FIX: Replaced path alias with a relative path to fix module resolution errors.
+import type { NotificationType } from '../types';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
 interface NotificationProps {
