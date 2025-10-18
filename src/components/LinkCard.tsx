@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-// FIX: The 'qrcode.react' library exports QRCodeCanvas and QRCodeSVG, not QRCode. Using QRCodeCanvas as QRCode because the download functionality expects a canvas element.
 import { QRCodeCanvas as QRCode } from 'qrcode.react';
-import type { Link, NotificationType } from '@/types';
-import { useLinks } from '@/hooks/useLinks';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
-import Spinner from '@/components/ui/Spinner';
+// FIX: Replaced path aliases with relative paths to fix module resolution errors.
+import type { Link, NotificationType } from '../types';
+import { useLinks } from '../hooks/useLinks';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import Card from './ui/Card';
+import Spinner from './ui/Spinner';
 import { Check, Clipboard, Download, Edit, Trash2, X, ExternalLink } from 'lucide-react';
 
 interface LinkCardProps {
